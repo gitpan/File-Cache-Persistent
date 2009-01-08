@@ -3,7 +3,7 @@ package File::Cache::Persistent;
 use strict;
 
 use vars qw($VERSION $CACHE $TIME_CACHE $NO_FILE $NOT_MODIFIED $FILE $PROLONG $TIMEOUT);
-$VERSION = 0.1;
+$VERSION = 0.2;
 
 $NO_FILE      = 1;
 $NOT_MODIFIED = $NO_FILE << 1;
