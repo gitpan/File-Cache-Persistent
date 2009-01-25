@@ -3,7 +3,7 @@ package File::Cache::Persistent;
 use strict;
 
 use vars qw($VERSION $CACHE $TIME_CACHE $NO_FILE $NOT_MODIFIED $FILE $PROLONG $TIMEOUT);
-$VERSION = 0.2;
+$VERSION = 0.3;
 
 $NO_FILE      = 1;
 $NOT_MODIFIED = $NO_FILE << 1;
@@ -20,6 +20,7 @@ sub new {
         prefix => $args{prefix} || undef,
         timeout => $args{timeout} || 0,
         reader => $args{reader} || undef,
+	reader_error => undef,
         data => {},
         status => undef,
     };
@@ -153,7 +154,11 @@ sub _read_file {
 
     my $data;
     if (defined $this->{reader}) {
-        $data = $this->{reader}($path);
+	$this->{reader_error} = undef;
+	eval {
+            $data = $this->{reader}($path);
+	};
+	$this->{reader_error} = $@ if $@;
     }
     else {
         local $/;
@@ -166,6 +171,12 @@ sub _read_file {
     $this->_update_cache($data, $path);
     
     return $data;
+}
+
+sub reader_error {
+    my $this = shift;
+    
+    return $this->{reader_error};
 }
 
 1;
@@ -277,6 +288,12 @@ image and returns it in a hash together with image dimentions.
             square => $width * $height,
         };
     }
+
+If the reader encounters an error, its explanation may be found by calling
+C<reader_error> method.
+
+    my $data = $cache->get('wrong.xml');
+    say $cache->reader_error() unless $data;
 
 It is possible to call C<new> with no parameters, which is equivalent to
 calling with defaults:
